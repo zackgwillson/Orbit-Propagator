@@ -2,15 +2,15 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import integrate
 
-#Next challenge, get maneuver nodes into new solver
-#Arbitrary precision arithmetic
-#Use events
+# Plot function that takes in a list of list of coordinates
 
 def plot(data_values):
 
   fig = plt.figure()
   ax = fig.add_subplot(111, projection='3d')
 
+  # Code to create a globe object that represents the Earth in the propagator
+  
   q = np.linspace(0, 2* np.pi, 100)
   v = np.linspace(0, np.pi, 100)
 
@@ -21,6 +21,8 @@ def plot(data_values):
 
   labels = []
 
+  # Plotting separate lines corresponding to the satellite movement between maneuvers
+  
   for i in range(len(data_values)):
     ax.plot(data_values[i][0, :], data_values[i][1, :], data_values[i][2, :])
     labels.append(str(i+1))
@@ -29,41 +31,8 @@ def plot(data_values):
 
   plt.show()
 
-#This is the previous event code for trying to use it the event way
-
-# def event(t, y):
-#   global t_maneuver
-#   global list_time_mnodes
-#   global list_values_mnodes
-#   list_time_mnodes = list_time_mnodes[1:]
-#   check = int(t)
-#   print(check)
-#   if check in t_maneuver.keys():
-#     loc = list_time_mnodes.index(check)
-#     temp = list_values_mnodes[loc]
-#     if temp[0] == "pr":
-#       y[3:] = prograde(temp[1], y[3:])
-#
-#     elif temp[0] == "re":
-#       y[3:] = retrograde(temp[1], y[3:])
-#
-#     elif temp[0] == "no":
-#       y[3:] = normal(temp[1], y[3:], y[:3])
-#
-#     elif temp[0] == "an":
-#       y[3:] = anti_normal(temp[1], y[3:], y[:3])
-#
-#     elif temp[0] == "ri":
-#       y[3:] = radial_in(temp[1], y[3:], y[:3])
-#
-#     elif temp[0] == "ro":
-#       y[3:] = radial_out(temp[1], y[3:], y[:3])
-#
-#     else:
-#       print("You need to enter a valid direction")
-#
-#
-#   return min(list_time_mnodes)-t
+#The following are maneuver functions that take in the current velocity of a satellite and the velocity that will be added with the specific manuver
+#It returns the new velocity
 
 def prograde(dV, V):
   Vx = V[0]
@@ -86,7 +55,7 @@ def retrograde(dV, V):
   return V + np.array([x, y, z])
 
 def normal(dV, V, R):
-  #out of the screen is defined as normal
+  #Positive in the z axis is defined as normal
   Vx = V[0]
   Vy = V[1]
   Vz = V[2]
@@ -98,7 +67,6 @@ def normal(dV, V, R):
   return V + np.array([dV*cross[0]/mag, dV*cross[1]/mag, dV*cross[2]/mag])
 
 def anti_normal(dV, V, R):
-  #into the screen is defined as anti normal
   Vx = V[0]
   Vy = V[1]
   Vz = V[2]
@@ -134,47 +102,10 @@ def radial_out(dV, V, R):
   return V + np.array([-dV*cross[0]/mag, -dV*cross[1]/mag, -dV*cross[2]/mag])
 
 
-#Here is the function code. I tried to put the maneuver inside of the function and using global variables and other functions, however, the t doesn't change linearly and for some reason I can't update the r vectors properly
+# Code for the Differential Equation
+
 def f(t, r):
-
-
-  global t_maneuver
-  global list_time_mnodes
-  global list_values_mnodes
-  check = int(t)
-
-  # if check in t_maneuver.keys():
-  #   loc = list_time_mnodes.index(check)
-  #   temp = list_values_mnodes[loc]
-  #   print(r)
-  #   if temp[0] == "pr":
-  #     r[3:] = prograde(temp[1], r[3:])
-  #     print(r)
-  #
-  #   elif temp[0] == "re":
-  #     r[3:] = retrograde(temp[1], r[3:])
-  #     print(r)
-  #
-  #   elif temp[0] == "no":
-  #     r[3:] = normal(temp[1], r[3:], r[:3])
-  #     print(r)
-  #
-  #   elif temp[0] == "an":
-  #     r[3:] = anti_normal(temp[1], r[3:], r[:3])
-  #     print(r)
-  #
-  #   elif temp[0] == "ri":
-  #     r[3:] = radial_in(temp[1], r[3:], r[:3])
-  #     print(r)
-  #
-  #   elif temp[0] == "ro":
-  #     r[3:] = radial_out(temp[1], r[3:], r[:3])
-  #     print(r)
-  #
-  #   else:
-  #     print("You need to enter a valid direction")
-
-
+  
   x = r[0]
   y = r[1]
   z = r[2]
@@ -195,11 +126,23 @@ def f(t, r):
 
 
 if __name__ == "__main__":
+  
+  # Gravitational Constant
+  
   GM = 3.986e5
 
-
+  # Number of timesteps
+  
   N = 100000
-  # pr is prograde, re is retrograde, no is normal, an is anti normal, ri is radial in, ro is radial out, the other value in the list is the magnitude of the velocity vector being added (delta V)
+  # pr is prograde 
+  # re is retrograde 
+  # no is normal 
+  # an is anti normal 
+  # ri is radial in 
+  # ro is radial out
+  # the other value in the list is the magnitude of the velocity vector being added (delta V)
+  # You can edit your own maneuvers into the code by following the format of "time : [direction, Velocity magnitude]"
+  
   t_maneuver = {750*8:["pr", 0], 1250*8:["no", 0.5], 4150*8:["an", 0.5], 6350*8:["pr", 2], 11350*8:["ri", 2], 95000:["re", 2]}
   list_time_mnodes = list(t_maneuver.keys())
   list_values_mnodes = list(t_maneuver.values())
@@ -254,6 +197,7 @@ if __name__ == "__main__":
       else:
         print("You need to enter a valid direction")
 
+      # Code for running the main IVP_solver.  It is solved in RK8 from Scipy
 
       sol = integrate.solve_ivp(f, (0, time_gap), cur_values, "DOP853", t_eval = np.linspace(0, time_gap,51))
       data_values.append(sol.y)
@@ -263,7 +207,8 @@ if __name__ == "__main__":
 
   plot(data_values)
 
-
+  #The following is code from the manual RK4 version of the propagator
+  
   # for n in range(0, N-1):
   #
   #   if t[n] in t_maneuver.keys():
